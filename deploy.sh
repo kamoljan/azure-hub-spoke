@@ -7,6 +7,6 @@ az group create --name $KHUB_ENV_NAME --location $AZURE_LOCATION
 az group deployment create \
     --name $KHUB_ENV_NAME_DEPLOYMENT \
     --resource-group $KHUB_ENV_NAME \
-    --template-file main.json \
-    --parameters @main.parameters.json
+    --template-uri https://raw.githubusercontent.com/kamoljan/azure-hub-spoke/master/main.json \
+    --parameters ./main.parameters.json
 

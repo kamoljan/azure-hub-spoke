@@ -15,13 +15,11 @@
       "type": "string"
     }
   },
-  "variables": {
-    "diagStorageAccountName": "[concat(parameters('diagStorageAccountName'), uniqueString(resourceGroup().id))]"
-  },
+  "variables": {},
   "resources": [
     {
       "type": "Microsoft.Storage/storageAccounts",
-      "name": "[variables('diagStorageAccountName')]",
+      "name": "[parameters('diagStorageAccountName')]",
       "apiVersion": "2017-06-01",
       "location": "[parameters('location')]",
       "sku": {

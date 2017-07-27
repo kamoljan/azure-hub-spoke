@@ -17,7 +17,7 @@
   },
   "variables": {
     "sharedTemplateUrl": "[uri(deployment().properties.templateLink.uri, 'nested/shared.json')]",
-    "diagStorageAccountName": "[concat(parameters('prefix'), 'dg', uniqueString(resourceGroup().id))]"
+    "diagStorageAccountName": "[substring(concat(parameters('prefix'), 'kk', uniqueString(resourceGroup().id)),0,23)]"
   },
   "resources": [
     {
