@@ -1,2 +1,3 @@
 # azure-hub-spoke
-Azure hub-spoke topology example 
+
+Azure hub-spoke topology example

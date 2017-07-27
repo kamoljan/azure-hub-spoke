@@ -4,3 +4,17 @@
 
 # Module directory
 .terraform/
+
+# Emacs
+*~
+
+# VSCode
+.vscode
+
+# Security
+*.pem
+*.key
+.envrc
+
+# Parameters
+*.parameters.json
