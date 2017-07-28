@@ -2,63 +2,106 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "location": {
-      "type": "string"
-    },
     "prefix": {
-      "type": "string"
-    },
-    "virtualNetworkName": {
-      "type": "string"
-    },
-    "virtualNetworkAddressPrefix": {
       "type": "string"
     },
     "hubName": {
       "type": "string"
+    },
+    "hubAddressPrefix": {
+      "type": "string"
+    },
+    "hubManagmentSubnet": {
+      "type": "string"
     }
   },
   "variables": {
-    "sharedTemplateUrl": "[uri(deployment().properties.templateLink.uri, 'nested/shared.json')]",
     "diagStorageAccountName": "[substring(concat(parameters('prefix'), 'dg', uniqueString(resourceGroup().id)),0,23)]",
     "hub": {
       "name": "[parameters('hubName')]",
-      "addressPrefix": "10.5.0.0/16",
+      "addressPrefix": "[parameters('hubAddressPrefix')]",
       "subnets": {
         "managementSubnet": {
           "name": "managementSN",
-          "addressPrefix": "10.5.0.0/26",
+          "addressPrefix": "[parameters('hubManagmentSubnet')]",
           "nsg": "managementNSG"
         }
       }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('diagStorageAccountName')]",
+      "apiVersion": "2017-06-01",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "Storage",
+      "properties": {}
     },
-    "resources": [
-      {
-        "type": "Microsoft.Resources/deployments",
-        "name": "sharedTemplateLink",
-        "apiVersion": "2016-09-01",
-        "properties": {
-          "mode": "Incremental",
-          "templateLink": {
-            "uri": "[variables('sharedTemplateUrl')]"
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('hub').subnets.managementSubnet.nsg]",
+      "apiVersion": "2017-06-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-Inbound-SSH-Internet",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
           },
-          "parameters": {
-            "location": {
-              "value": "[parameters('location')]"
-            },
-            "diagStorageAccountName": {
-              "value": "[variables('diagStorageAccountName')]"
-            },
-            "virtualNetworkName": {
-              "value": "[parameters('virtualNetworkName')]"
-            },
-            "virtualNetworkAddressPrefix": {
-              "value": "[parameters('virtualNetworkAddressPrefix')]"
+          {
+            "name": "Deny-Internet-All",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 200,
+              "direction": "Inbound"
             }
           }
-        }
+        ]
       }
-    ],
-    "outputs": {}
-  }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('hub').name]",
+      "apiVersion": "2017-06-01",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('hub').addressPrefix]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('hub').subnets.managementSubnet.name]",
+            "properties": {
+              "addressPrefix": "[variables('hub').subnets.managementSubnet.addressPrefix]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('hub').subnets.managementSubnet.nsg)]"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {}
 }
