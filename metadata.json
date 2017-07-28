@@ -1,0 +1,7 @@
+{
+    "itemDisplayName": "Hub Spoke Topology",
+    "description": "This template creates a Hub-Spoke Topology: Hub and configurable amount of Spokes",
+    "summary": "Hub acts like gateway for Spokes network",
+    "githubUsername": "kamoljan",
+    "dateUpdated": "2017-07-28"
+}
