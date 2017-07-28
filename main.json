@@ -2,9 +2,6 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "prefix": {
-      "type": "string"
-    },
     "hubName": {
       "type": "string"
     },
@@ -16,7 +13,7 @@
     }
   },
   "variables": {
-    "diagStorageAccountName": "[substring(concat(parameters('prefix'), 'dg', uniqueString(resourceGroup().id)),0,23)]",
+    "diagStorageAccountName": "[substring(concat(replace(parameters('hubName'),'-',''), 'dg', uniqueString(resourceGroup().id)),0,23)]",
     "hub": {
       "name": "[parameters('hubName')]",
       "addressPrefix": "[parameters('hubAddressPrefix')]",
