@@ -79,7 +79,9 @@
       "name": "[variables('hub').name]",
       "apiVersion": "2017-06-01",
       "location": "[resourceGroup().location]",
-      "dependsOn": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('hub').subnets.managementSubnet.nsg)]"
+      ],
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
