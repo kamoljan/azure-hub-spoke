@@ -1,7 +1,6 @@
 # Azure Hub Spoke
 
-This is a demo how to create 
-Azure hub-spoke topology example
+This is a demo how to create Azure hub-spoke topology.
 
 ## How to use
 

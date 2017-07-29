@@ -130,7 +130,49 @@
             }
           }
         ]
-      }
+      },
+      "resources": [
+        {
+          "apiVersion": "2017-06-01",
+          "type": "virtualNetworkPeerings",
+          "name": "hub2spoke1",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('hubName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('spoke1Name'))]"
+          ],
+          "comments": "This is the peering from hub to spoke1",
+          "properties": {
+            "allowVirtualNetworkAccess": "true",
+            "allowForwardedTraffic": "false",
+            "allowGatewayTransit": "false",
+            "useRemoteGateways": "false",
+            "remoteVirtualNetwork": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('spoke1Name'))]"
+            }
+          }
+        },
+        {
+          "apiVersion": "2017-06-01",
+          "type": "virtualNetworkPeerings",
+          "name": "hub2spoke2",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('hubName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('spoke2Name'))]"
+          ],
+          "comments": "This is the peering from hub to spoke1",
+          "properties": {
+            "allowVirtualNetworkAccess": "true",
+            "allowForwardedTraffic": "false",
+            "allowGatewayTransit": "false",
+            "useRemoteGateways": "false",
+            "remoteVirtualNetwork": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('spoke2Name'))]"
+            }
+          }
+        }
+      ]
     },
     {
       "type": "Microsoft.Network/virtualNetworks",
@@ -155,7 +197,29 @@
             }
           }
         ]
-      }
+      },
+      "resources": [
+        {
+          "apiVersion": "2017-06-01",
+          "type": "virtualNetworkPeerings",
+          "name": "spoke12hub",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('hubName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('spoke1Name'))]"
+          ],
+          "comments": "This is the peering from hub to spoke1",
+          "properties": {
+            "allowVirtualNetworkAccess": "true",
+            "allowForwardedTraffic": "false",
+            "allowGatewayTransit": "false",
+            "useRemoteGateways": "false",
+            "remoteVirtualNetwork": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('hubName'))]"
+            }
+          }
+        }
+      ]
     },
     {
       "type": "Microsoft.Network/virtualNetworks",
@@ -180,7 +244,29 @@
             }
           }
         ]
-      }
+      },
+      "resources": [
+        {
+          "apiVersion": "2017-06-01",
+          "type": "virtualNetworkPeerings",
+          "name": "spoke22hub",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('hubName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('spoke2Name'))]"
+          ],
+          "comments": "This is the peering from hub to spoke1",
+          "properties": {
+            "allowVirtualNetworkAccess": "true",
+            "allowForwardedTraffic": "false",
+            "allowGatewayTransit": "false",
+            "useRemoteGateways": "false",
+            "remoteVirtualNetwork": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('hubName'))]"
+            }
+          }
+        }
+      ]
     }
   ],
   "outputs": {}
