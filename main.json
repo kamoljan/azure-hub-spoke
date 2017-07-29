@@ -10,6 +10,18 @@
     },
     "hubManagmentSubnet": {
       "type": "string"
+    },
+    "spoke1Name": {
+      "type": "string"
+    },
+    "spoke1AddressPrefix": {
+      "type": "string"
+    },
+    "spoke2Name": {
+      "type": "string"
+    },
+    "spoke2AddressPrefix": {
+      "type": "string"
     }
   },
   "variables": {
@@ -24,6 +36,14 @@
           "nsg": "managementNSG"
         }
       }
+    },
+    "spoke1": {
+      "name": "[parameters('spoke1Name')]",
+      "addressPrefix": "[parameters('spoke1AddressPrefix')]"
+    },
+    "spoke2": {
+      "name": "[parameters('spoke2Name')]",
+      "addressPrefix": "[parameters('spoke2AddressPrefix')]"
     }
   },
   "resources": [
@@ -99,6 +119,36 @@
             }
           }
         ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('spoke1').name]",
+      "apiVersion": "2017-06-01",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('spoke1').addressPrefix]"
+          ]
+        },
+        "subnets": []
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('spoke2').name]",
+      "apiVersion": "2017-06-01",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('spoke2').addressPrefix]"
+          ]
+        },
+        "subnets": []
       }
     }
   ],
