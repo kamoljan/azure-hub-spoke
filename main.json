@@ -5,22 +5,19 @@
     "hubName": {
       "type": "string"
     },
-    "hubAddressPrefix": {
-      "type": "string"
-    },
-    "hubManagmentSubnet": {
+    "hubAddress": {
       "type": "string"
     },
     "spoke1Name": {
       "type": "string"
     },
-    "spoke1AddressPrefix": {
+    "spoke1Address": {
       "type": "string"
     },
     "spoke2Name": {
       "type": "string"
     },
-    "spoke2AddressPrefix": {
+    "spoke2Address": {
       "type": "string"
     }
   },
@@ -28,22 +25,36 @@
     "diagStorageAccountName": "[substring(concat(replace(parameters('hubName'),'-',''), 'dg', uniqueString(resourceGroup().id)),0,23)]",
     "hub": {
       "name": "[parameters('hubName')]",
-      "addressPrefix": "[parameters('hubAddressPrefix')]",
+      "addressPrefix": "[concat(parameters('hubAddress'), '/16')]",
       "subnets": {
         "managementSubnet": {
           "name": "managementSN",
-          "addressPrefix": "[parameters('hubManagmentSubnet')]",
+          "addressPrefix": "[concat(parameters('hubAddress'), '/24')]",
           "nsg": "managementNSG"
         }
       }
     },
     "spoke1": {
       "name": "[parameters('spoke1Name')]",
-      "addressPrefix": "[parameters('spoke1AddressPrefix')]"
+      "addressPrefix": "[concat(parameters('spoke1Address'), '/16')]",
+      "subnets": {
+        "managementSubnet": {
+          "name": "managementSN",
+          "addressPrefix": "[concat(parameters('spoke1Address'), '/26')]",
+          "nsg": "managementNSG"
+        }
+      }
     },
     "spoke2": {
       "name": "[parameters('spoke2Name')]",
-      "addressPrefix": "[parameters('spoke2AddressPrefix')]"
+      "addressPrefix": "[concat(parameters('spoke2Address'), '/16')]",
+      "subnets": {
+        "managementSubnet": {
+          "name": "managementSN",
+          "addressPrefix": "[concat(parameters('spoke2Address'), '/16')]",
+          "nsg": "managementNSG"
+        }
+      }
     }
   },
   "resources": [
@@ -133,7 +144,17 @@
             "[variables('spoke1').addressPrefix]"
           ]
         },
-        "subnets": []
+        "subnets": [
+          {
+            "name": "[variables('spoke1').subnets.managementSubnet.name]",
+            "properties": {
+              "addressPrefix": "[variables('spoke1').subnets.managementSubnet.addressPrefix]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('spoke1').subnets.managementSubnet.nsg)]"
+              }
+            }
+          }
+        ]
       }
     },
     {
@@ -148,7 +169,17 @@
             "[variables('spoke2').addressPrefix]"
           ]
         },
-        "subnets": []
+        "subnets": [
+          {
+            "name": "[variables('spoke2').subnets.managementSubnet.name]",
+            "properties": {
+              "addressPrefix": "[variables('spoke2').subnets.managementSubnet.addressPrefix]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('spoke2').subnets.managementSubnet.nsg)]"
+              }
+            }
+          }
+        ]
       }
     }
   ],
