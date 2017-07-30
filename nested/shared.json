@@ -63,7 +63,7 @@
     }
   },
   "resources": [
-        {
+    {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('diagStorageAccountName')]",
       "apiVersion": "2017-06-01",
