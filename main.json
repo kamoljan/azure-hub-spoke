@@ -22,251 +22,39 @@
     }
   },
   "variables": {
-    "diagStorageAccountName": "[substring(concat(replace(parameters('hubName'),'-',''), 'dg', uniqueString(resourceGroup().id)),0,23)]",
-    "hub": {
-      "name": "[parameters('hubName')]",
-      "addressPrefix": "[concat(parameters('hubAddress'), '/16')]",
-      "subnets": {
-        "managementSubnet": {
-          "name": "managementSN",
-          "addressPrefix": "[concat(parameters('hubAddress'), '/24')]",
-          "nsg": "managementNSG"
-        }
-      }
-    },
-    "spoke1": {
-      "name": "[parameters('spoke1Name')]",
-      "addressPrefix": "[concat(parameters('spoke1Address'), '/16')]",
-      "subnets": {
-        "managementSubnet": {
-          "name": "managementSN",
-          "addressPrefix": "[concat(parameters('spoke1Address'), '/26')]",
-          "nsg": "managementNSG"
-        }
-      }
-    },
-    "spoke2": {
-      "name": "[parameters('spoke2Name')]",
-      "addressPrefix": "[concat(parameters('spoke2Address'), '/16')]",
-      "subnets": {
-        "managementSubnet": {
-          "name": "managementSN",
-          "addressPrefix": "[concat(parameters('spoke2Address'), '/16')]",
-          "nsg": "managementNSG"
-        }
-      }
-    }
+    "sharedTemplateUrl": "[uri(deployment().properties.templateLink.uri, 'nested/shared.json')]"
   },
   "resources": [
     {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[variables('diagStorageAccountName')]",
-      "apiVersion": "2017-06-01",
-      "location": "[resourceGroup().location]",
-      "sku": {
-        "name": "Standard_LRS"
-      },
-      "kind": "Storage",
-      "properties": {}
-    },
-    {
-      "type": "Microsoft.Network/networkSecurityGroups",
-      "name": "[variables('hub').subnets.managementSubnet.nsg]",
-      "apiVersion": "2017-06-01",
-      "location": "[resourceGroup().location]",
+      "type": "Microsoft.Resources/deployments",
+      "name": "sharedTemplateLink",
+      "apiVersion": "2016-09-01",
       "properties": {
-        "securityRules": [
-          {
-            "name": "Allow-Inbound-SSH-Internet",
-            "properties": {
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "22",
-              "sourceAddressPrefix": "Internet",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 100,
-              "direction": "Inbound"
-            }
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('sharedTemplateUrl')]"
+        },
+        "parameters": {
+          "hubName": {
+            "value": "[parameters('hubName')]"
           },
-          {
-            "name": "Deny-Internet-All",
-            "properties": {
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "*",
-              "sourceAddressPrefix": "Internet",
-              "destinationAddressPrefix": "*",
-              "access": "Deny",
-              "priority": 200,
-              "direction": "Inbound"
-            }
+          "hubAddress": {
+            "value": "[parameters('hubAddress')]"
+          },
+          "spoke1Name": {
+            "value": "[parameters('spoke1Name')]"
+          },
+          "spoke1Address": {
+            "value": "[parameters('spoke1Address')]"
+          },
+          "spoke2Name": {
+            "value": "[parameters('spoke2Name')]"
+          },
+          "spoke2Address": {
+            "value": "[parameters('spoke2Address')]"
           }
-        ]
+        }
       }
-    },
-    {
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('hub').name]",
-      "apiVersion": "2017-06-01",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('hub').subnets.managementSubnet.nsg)]"
-      ],
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('hub').addressPrefix]"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "[variables('hub').subnets.managementSubnet.name]",
-            "properties": {
-              "addressPrefix": "[variables('hub').subnets.managementSubnet.addressPrefix]",
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('hub').subnets.managementSubnet.nsg)]"
-              }
-            }
-          }
-        ]
-      },
-      "resources": [
-        {
-          "apiVersion": "2017-06-01",
-          "type": "virtualNetworkPeerings",
-          "name": "hub2spoke1",
-          "location": "[resourceGroup().location]",
-          "dependsOn": [
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('hubName'))]",
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('spoke1Name'))]"
-          ],
-          "comments": "This is the peering from hub to spoke1",
-          "properties": {
-            "allowVirtualNetworkAccess": "true",
-            "allowForwardedTraffic": "false",
-            "allowGatewayTransit": "false",
-            "useRemoteGateways": "false",
-            "remoteVirtualNetwork": {
-              "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('spoke1Name'))]"
-            }
-          }
-        },
-        {
-          "apiVersion": "2017-06-01",
-          "type": "virtualNetworkPeerings",
-          "name": "hub2spoke2",
-          "location": "[resourceGroup().location]",
-          "dependsOn": [
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('hubName'))]",
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('spoke2Name'))]"
-          ],
-          "comments": "This is the peering from hub to spoke1",
-          "properties": {
-            "allowVirtualNetworkAccess": "true",
-            "allowForwardedTraffic": "false",
-            "allowGatewayTransit": "false",
-            "useRemoteGateways": "false",
-            "remoteVirtualNetwork": {
-              "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('spoke2Name'))]"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('spoke1').name]",
-      "apiVersion": "2017-06-01",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [],
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('spoke1').addressPrefix]"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "[variables('spoke1').subnets.managementSubnet.name]",
-            "properties": {
-              "addressPrefix": "[variables('spoke1').subnets.managementSubnet.addressPrefix]",
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('spoke1').subnets.managementSubnet.nsg)]"
-              }
-            }
-          }
-        ]
-      },
-      "resources": [
-        {
-          "apiVersion": "2017-06-01",
-          "type": "virtualNetworkPeerings",
-          "name": "spoke12hub",
-          "location": "[resourceGroup().location]",
-          "dependsOn": [
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('hubName'))]",
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('spoke1Name'))]"
-          ],
-          "comments": "This is the peering from hub to spoke1",
-          "properties": {
-            "allowVirtualNetworkAccess": "true",
-            "allowForwardedTraffic": "false",
-            "allowGatewayTransit": "false",
-            "useRemoteGateways": "false",
-            "remoteVirtualNetwork": {
-              "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('hubName'))]"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('spoke2').name]",
-      "apiVersion": "2017-06-01",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [],
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('spoke2').addressPrefix]"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "[variables('spoke2').subnets.managementSubnet.name]",
-            "properties": {
-              "addressPrefix": "[variables('spoke2').subnets.managementSubnet.addressPrefix]",
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('spoke2').subnets.managementSubnet.nsg)]"
-              }
-            }
-          }
-        ]
-      },
-      "resources": [
-        {
-          "apiVersion": "2017-06-01",
-          "type": "virtualNetworkPeerings",
-          "name": "spoke22hub",
-          "location": "[resourceGroup().location]",
-          "dependsOn": [
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('hubName'))]",
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('spoke2Name'))]"
-          ],
-          "comments": "This is the peering from hub to spoke1",
-          "properties": {
-            "allowVirtualNetworkAccess": "true",
-            "allowForwardedTraffic": "false",
-            "allowGatewayTransit": "false",
-            "useRemoteGateways": "false",
-            "remoteVirtualNetwork": {
-              "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('hubName'))]"
-            }
-          }
-        }
-      ]
     }
   ],
   "outputs": {}
